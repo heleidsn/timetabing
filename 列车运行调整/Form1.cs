@@ -20,15 +20,8 @@ namespace 列车运行调整
 
         public class PublicValue   //全局变量设置
         {
-            public static int[,] T_plan = new int[14,10];
-            public int B;
-        }
-
-        private void 读取运行图ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            //int[,] T_plan = new int[14,10];
-            //读取标准运行图数据
-            int[,] T_plan = {
+            //标准运行图到发时刻 T_plan
+            public static int[,] T_plan = new int[14,10] {
             {0,32,32,68,68,79,85,109,109,137},
             {6,38,38,74,74,85,91,115,115,143},
             {12,44,44,80,80,91,97,121,121,149},
@@ -42,16 +35,24 @@ namespace 列车运行调整
             {172,197,197,226,226,235,241,261,261,284},
             {178,203,203,232,232,241,247,267,267,290},
             {184,209,209,238,238,247,253,273,273,296},
-            {190,215,215,244,244,253,259,279,279,302}};
-            
-            
+            {190,215,215,244,244,253,259,279,279,302}
+            };
+
+        }
+
+
+        private void 读取运行图ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            int[,] T_plan = new int[14,10];
+            //读取标准运行图数据
 
             //变量定义
             Point startP = new Point(100, 100);
             Point endP = new Point(200, 200);
 
-            pictureBox1.Image = new Bitmap(pictureBox1.Width, pictureBox1.Height);
-            Graphics gr = Graphics.FromImage(pictureBox1.Image);
+            //pictureBox1.Image = new Bitmap(pictureBox1.Width, pictureBox1.Height);
+            //Graphics gr = Graphics.FromImage(pictureBox1.Image);
+            Graphics gr = pictureBox1.CreateGraphics();
             gr.Clear(Color.White);
             Pen PenGreen = new Pen(Color.Green, 1);//绿 虚线 细
             Pen PenBlack = new Pen(Color.Black, 3);
@@ -104,14 +105,13 @@ namespace 列车运行调整
 
         private void 执行调整ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            PublicValue.A = 10;
-            test();
+            //pictureBox1.Image = new Bitmap(pictureBox1.Width, pictureBox1.Height);
+            //Graphics gr = Graphics.FromImage(pictureBox1.Image);
+            Graphics gr = pictureBox1.CreateGraphics();
+            Pen PenBlack = new Pen(Color.Black, 3);
+            gr.DrawLine(PenBlack, 100, 100, 1050, 200);
         }
 
-        private void test()
-        {
-            PublicValue.A = 20;
-            Console.WriteLine(PublicValue.A);
-        }
+
     }
 }

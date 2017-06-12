@@ -55,7 +55,7 @@
             // 
             this.读取运行图ToolStripMenuItem.Name = "读取运行图ToolStripMenuItem";
             this.读取运行图ToolStripMenuItem.Size = new System.Drawing.Size(80, 21);
-            this.读取运行图ToolStripMenuItem.Text = "读取运行图";
+            this.读取运行图ToolStripMenuItem.Text = "标准运行图";
             this.读取运行图ToolStripMenuItem.Click += new System.EventHandler(this.读取运行图ToolStripMenuItem_Click);
             // 
             // 晚点信息设置ToolStripMenuItem

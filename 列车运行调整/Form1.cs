@@ -44,6 +44,11 @@ namespace 列车运行调整
             //绘图起点
             public static Point startP = new Point(100,100);
             public static int[] lineY = new int[6];
+
+            //晚点信息
+            public static int delayTrainNo; //晚点列车序号
+            public static int delayBlock;   //晚点区间
+            public static int delayTime;    //晚点时间
         }
 
         //计算标准运行图到发时刻 T_plan
@@ -151,10 +156,15 @@ namespace 列车运行调整
         //测试
         private void 显示时刻表ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Console.WriteLine(0 / 2);
-            Console.WriteLine(0 % 2);
+            Console.WriteLine(PublicValue.delayTrainNo);
+            Console.WriteLine(PublicValue.delayBlock);
+            Console.WriteLine(PublicValue.delayTime);
         }
 
-
+        private void 晚点信息设置ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DelayInfo f2 = new DelayInfo();
+            f2.Show();
+        }
     }
 }

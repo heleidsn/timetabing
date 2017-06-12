@@ -63,6 +63,7 @@
             this.晚点信息设置ToolStripMenuItem.Name = "晚点信息设置ToolStripMenuItem";
             this.晚点信息设置ToolStripMenuItem.Size = new System.Drawing.Size(92, 21);
             this.晚点信息设置ToolStripMenuItem.Text = "晚点信息设置";
+            this.晚点信息设置ToolStripMenuItem.Click += new System.EventHandler(this.晚点信息设置ToolStripMenuItem_Click);
             // 
             // 执行调整ToolStripMenuItem
             // 

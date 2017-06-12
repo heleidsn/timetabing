@@ -76,6 +76,7 @@
             this.显示时刻表ToolStripMenuItem.Name = "显示时刻表ToolStripMenuItem";
             this.显示时刻表ToolStripMenuItem.Size = new System.Drawing.Size(80, 21);
             this.显示时刻表ToolStripMenuItem.Text = "显示时刻表";
+            this.显示时刻表ToolStripMenuItem.Click += new System.EventHandler(this.显示时刻表ToolStripMenuItem_Click);
             // 
             // pictureBox1
             // 

@@ -21,7 +21,9 @@ namespace 列车运行调整
         public class PublicValue   //全局变量设置
         {
             //标准运行图到发时刻 T_plan
-            public static int[,] T_plan = new int[14, 10];
+            public static int[,] T_plan = new int[14, 10];      //标准运行图
+            public static int[,] T_heuristic = new int[14, 10]; //基本启发式算法调整后运行图
+            public static int[,] T_FAA = new int[14, 10];       //萤火虫算法调整后运行图
  
             //等级矩阵和权重矩阵
             public static int[] level = { 2, 2, 2, 3, 3, 4, 4, 4, 4, 4, 1, 1, 1, 1 };
@@ -46,9 +48,15 @@ namespace 列车运行调整
             public static int[] lineY = new int[6];
 
             //晚点信息
-            public static int delayTrainNo; //晚点列车序号
-            public static int delayBlock;   //晚点区间
-            public static int delayTime;    //晚点时间
+            public static int delayTrainNo = 6; //晚点列车序号
+            public static int delayBlock = 3;   //晚点区间
+            public static int delayTime = 40;    //晚点时间
+
+            //萤火虫算法参数
+            public static int fireflyNum = 30;    //萤火虫数目
+            public static int maxGeneration = 20; //最大迭代次数
+            public static int neighborNum1 = 2;   //第一种邻域计算次数   
+            public static int neighborNum2 = 2;   //第二种领域计算次数
         }
 
         //计算标准运行图到发时刻 T_plan
@@ -76,6 +84,8 @@ namespace 列车运行调整
                 }
             }
         }
+
+        //绘制运行图基本框架
         private void PlotFrame(Point startP)
         {
             //创建画布
@@ -105,8 +115,12 @@ namespace 列车运行调整
             }
         }
 
+        //绘制运行图
         private void PlotTimeTable(Point startP, int[] lineY, int[,] T_plan, Pen P)
         {
+            //绘制框架
+            PlotFrame(PublicValue.startP);
+
             Graphics gr = pictureBox1.CreateGraphics();
             //绘制标准运行图
             for (int i = 0; i < 14; i++)
@@ -136,11 +150,12 @@ namespace 列车运行调整
             int[,] T_plan = new int[14,10];
             T_plan = PublicValue.T_plan;
 
-            //绘制框架
-            PlotFrame(PublicValue.startP);
+            
 
             //绘制标准运行图
-            PlotTimeTable(PublicValue.startP, PublicValue.lineY, T_plan, new Pen(Color.Black, 3));
+            PlotTimeTable(PublicValue.startP, PublicValue.lineY, T_plan, new Pen(Color.Black, 2));
+
+            
         }
 
         private void 执行调整ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -156,15 +171,224 @@ namespace 列车运行调整
         //测试
         private void 显示时刻表ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Console.WriteLine(PublicValue.delayTrainNo);
-            Console.WriteLine(PublicValue.delayBlock);
-            Console.WriteLine(PublicValue.delayTime);
+            //Console.WriteLine(0/2);
+            int[] list = { 34, 72, 13, 44, 25, 30, 10 };
+            int[] index = { 1, 2, 3, 4, 5, 6, 7 };
+            int[] temp = list;
+            Array.Sort(list,index);
+            foreach (int i in list)
+            {
+                Console.Write(i + " ");
+            }
+            foreach (int i in index)
+            {
+                Console.Write(i + " ");
+            }
+            
         }
 
+        //晚点信息设置界面加载
         private void 晚点信息设置ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             DelayInfo f2 = new DelayInfo();
             f2.Show();
+        }
+
+        //普通启发式算法运算
+        private void 启发式ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //变量设置
+            int[,] T_temp = new int[14, 10];
+            int[,] F_js = new int[5, 14];
+            int[,] T_plan = PublicValue.T_plan;
+
+            int[] list = new int[14];
+            int[] index = new int[14];
+
+            int temp1 = 0;  //记录最后一个受影响的高等级车辆
+
+            //按站进行查询
+            for (int i = 0; i < 10; i++)
+            {
+                //Console.WriteLine(i);
+                if (i == 0)  //始发站  没有晚点  直接复制
+                {
+                    for (int j = 0; j < 14; j++)
+                    {
+                        T_temp[j, i] = T_plan[j, i];
+                    }
+                }
+                else
+                {
+                    //到达站情况
+                    if (i%2 == 1)
+                    {
+                        for (int j = 0; j < 14; j++)
+                        {
+                            if (j == PublicValue.delayTrainNo - 1 && i/2 == PublicValue.delayBlock - 1)  //初始晚点情况
+                            {
+                                T_temp[j, i] = T_temp[j, i-1] + PublicValue.Ts[i/2, PublicValue.level[j] - 1] + PublicValue.delayTime;
+                            }
+                            else if (i != 1 && F_js[i/2 - 1,j] == 1) //需要加速情况
+                            {
+                                T_temp[j, i] = T_temp[j, i - 1] + PublicValue.Tm[i / 2, PublicValue.level[j] - 1];
+                                if (T_temp[j,i] < T_plan[j,i])
+                                {
+                                    T_temp[j, i] = T_plan[j, i];
+                                }
+                            }
+                            else  //正常情况
+                            {
+                                T_temp[j, i] = T_temp[j, i - 1] + PublicValue.Ts[i / 2, PublicValue.level[j] - 1];
+                            }
+
+                            list[j] = T_temp[j, i];
+                            index[j] = j;
+                        }
+                        //按照最小进站时间重新排序
+                        Array.Sort(list, index);
+                        int flag1 = 0;
+                        for (int kkk = 0; kkk < 14; kkk++)
+                        {
+                            if (index[kkk] != kkk)
+                            {
+                                flag1 = 1;
+                            }
+                        }
+                        if (flag1 == 1 && i/2 != PublicValue.delayBlock - 1)
+                        {
+                            for (int j = 0; j < 13; j++)
+                            {
+                                if (T_temp[index[j + 1], i] - T_temp[index[j], i] < PublicValue.minArriveTime)
+                                {
+                                    T_temp[index[j + 1], i] = T_temp[index[j], i] + PublicValue.minArriveTime;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            for (int j = 0; j < 13; j++)
+                            {
+                                if (T_temp[j+1,i] - T_temp[j,i] < PublicValue.minArriveTime)
+                                {
+                                    T_temp[j + 1, i] = T_temp[j, i] + PublicValue.minArriveTime;
+                                }
+                            }
+                        }
+                        
+                        //确定晚点列车
+                        for (int j = 0; j < 14; j++)
+                        {
+                            if (T_temp[j,i] > T_plan[j,i])
+                            {
+                                F_js[i / 2, j] = 1;
+                            }
+                        }
+                    }
+                    else    //出发站点
+                    {
+                        //计算调整前出发时间
+                        for (int j = 0; j < 14; j++)
+                        {
+                            T_temp[j, i] = T_temp[j, i - 1] + PublicValue.Tz[i / 2, PublicValue.level[j] - 1];
+                        }
+                        //按优先级调整发车顺序
+                        for (int j = 0; j < 14; j++)
+                        {
+                            if (F_js[i / 2 - 1, j] == 1)  //如果为晚点车辆
+                            {
+                                temp1 = 0; //记录最后一个受影响的高等级车辆
+                                for (int kk = j + 1; kk < 14; kk++)
+                                {
+                                    if (PublicValue.level[j] > PublicValue.level[kk])   //如果kk等级高   1最高 4最低
+                                    {
+                                        int T1 = T_temp[kk,i] + PublicValue.Ts[i/2,PublicValue.level[kk] - 1];  //kk列车下站正常到站时间
+                                        int T2 = T_temp[j,i] + PublicValue.Tm[i/2,PublicValue.level[j] - 1] + PublicValue.minArriveTime;  //j列车下站到达时间+ai
+                                        if (T1 < T2)
+                                        {
+                                            temp1 = kk;  //记录最后一个受影响的列车
+                                        }
+                                    }
+                                }
+                                if (temp1 != 0)
+                                {
+                                    T_temp[j, i] = T_temp[temp1, i] + PublicValue.minDepartTime; //将j列车排在最后一个受影响的高等级列车之后
+                                    for (int kk = j + 1; kk < 14; kk++)
+                                    {
+                                        //j列车不能早于同等级列车发车
+                                        if (T_temp[j,i] < T_temp[kk,i] + PublicValue.minDepartTime && PublicValue.level[j] > PublicValue.level[kk])
+                                        {
+                                            T_temp[j, i] = T_temp[kk, i] + PublicValue.minDepartTime;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        //按照等级、发车顺序对出站列车进行重新排序
+                        for (int ii = 0; ii < 4; ii++)
+                        {
+                            int temp2 = 0;
+                            for (int jj = 0; jj < 14; jj++)
+                            {
+                                if (PublicValue.level[jj] == ii+1)
+                                {
+                                    if (temp2 == 0)
+                                    {
+                                        temp2 = T_temp[jj, i];
+                                    }
+                                    else
+                                    {
+                                        if (T_temp[jj,i] < temp2 + PublicValue.minDepartTime)
+                                        {
+                                            T_temp[jj, i] = temp2 + PublicValue.minDepartTime;
+                                            temp2 = T_temp[jj, i];
+                                        }
+                                        else
+                                        {
+                                            temp2 = T_temp[jj, i];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            //调整结束  进行赋值
+            PublicValue.T_heuristic = T_temp;
+            Console.WriteLine(GetDelayTime(T_temp));
+        }
+
+        //显示调整后运行图
+        private void 调整后运行图ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            PlotTimeTable(PublicValue.startP, PublicValue.lineY, PublicValue.T_heuristic, new Pen(Color.Black, 2));
+            int[,] T = PublicValue.T_heuristic;
+            for (int i = 0; i < 14; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    Console.Write(T[i, j] + "\t");
+                }
+                Console.WriteLine();
+            }
+        }
+
+        //获取晚点时间   
+        //输入：调整后的时刻表
+        //输出：加权晚点时间
+        private double GetDelayTime(int[,] timeTable)
+        {
+            double delayTime = 0;
+            for (int i = 0; i < 14; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    delayTime += (timeTable[i, j] - PublicValue.T_plan[i, j]) * PublicValue.weight[i] * 0.1;
+                }
+            }
+            return delayTime;
         }
     }
 }

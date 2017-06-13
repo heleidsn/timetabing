@@ -25,6 +25,9 @@ namespace 列车运行调整
             Form1.PublicValue.delayTime = int.Parse(textBox3.Text);
             MessageBox.Show("设置成功");
             this.Close();
+
+            //显示晚点信息
+            
         }
         private void button2_Click(object sender, EventArgs e)
         {

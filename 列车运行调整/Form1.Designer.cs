@@ -32,8 +32,11 @@
             this.读取运行图ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.晚点信息设置ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.执行调整ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.启发式ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.萤火虫算法ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.显示时刻表ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.调整后运行图ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
@@ -44,7 +47,8 @@
             this.读取运行图ToolStripMenuItem,
             this.晚点信息设置ToolStripMenuItem,
             this.执行调整ToolStripMenuItem,
-            this.显示时刻表ToolStripMenuItem});
+            this.显示时刻表ToolStripMenuItem,
+            this.调整后运行图ToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(1122, 25);
@@ -67,10 +71,25 @@
             // 
             // 执行调整ToolStripMenuItem
             // 
+            this.执行调整ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.启发式ToolStripMenuItem,
+            this.萤火虫算法ToolStripMenuItem});
             this.执行调整ToolStripMenuItem.Name = "执行调整ToolStripMenuItem";
             this.执行调整ToolStripMenuItem.Size = new System.Drawing.Size(68, 21);
             this.执行调整ToolStripMenuItem.Text = "执行调整";
-            this.执行调整ToolStripMenuItem.Click += new System.EventHandler(this.执行调整ToolStripMenuItem_Click);
+            // 
+            // 启发式ToolStripMenuItem
+            // 
+            this.启发式ToolStripMenuItem.Name = "启发式ToolStripMenuItem";
+            this.启发式ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.启发式ToolStripMenuItem.Text = "基本启发式";
+            this.启发式ToolStripMenuItem.Click += new System.EventHandler(this.启发式ToolStripMenuItem_Click);
+            // 
+            // 萤火虫算法ToolStripMenuItem
+            // 
+            this.萤火虫算法ToolStripMenuItem.Name = "萤火虫算法ToolStripMenuItem";
+            this.萤火虫算法ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.萤火虫算法ToolStripMenuItem.Text = "萤火虫算法";
             // 
             // 显示时刻表ToolStripMenuItem
             // 
@@ -87,6 +106,13 @@
             this.pictureBox1.Size = new System.Drawing.Size(1122, 623);
             this.pictureBox1.TabIndex = 1;
             this.pictureBox1.TabStop = false;
+            // 
+            // 调整后运行图ToolStripMenuItem
+            // 
+            this.调整后运行图ToolStripMenuItem.Name = "调整后运行图ToolStripMenuItem";
+            this.调整后运行图ToolStripMenuItem.Size = new System.Drawing.Size(92, 21);
+            this.调整后运行图ToolStripMenuItem.Text = "调整后运行图";
+            this.调整后运行图ToolStripMenuItem.Click += new System.EventHandler(this.调整后运行图ToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -114,6 +140,9 @@
         private System.Windows.Forms.ToolStripMenuItem 执行调整ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 显示时刻表ToolStripMenuItem;
         private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.ToolStripMenuItem 启发式ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 萤火虫算法ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 调整后运行图ToolStripMenuItem;
     }
 }
 

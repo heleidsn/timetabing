@@ -90,6 +90,7 @@
             this.萤火虫算法ToolStripMenuItem.Name = "萤火虫算法ToolStripMenuItem";
             this.萤火虫算法ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.萤火虫算法ToolStripMenuItem.Text = "萤火虫算法";
+            this.萤火虫算法ToolStripMenuItem.Click += new System.EventHandler(this.萤火虫算法ToolStripMenuItem_Click);
             // 
             // 显示时刻表ToolStripMenuItem
             // 

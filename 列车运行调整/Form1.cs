@@ -167,6 +167,7 @@ namespace 列车运行调整
         private void 显示时刻表ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             //Console.WriteLine(0/2);
+            /*
             int[] list = { 34, 72, 13, 44, 25, 30, 10 };
             int[] index = { 1, 2, 3, 4, 5, 6, 7 };
             int[] temp = list;
@@ -180,7 +181,18 @@ namespace 列车运行调整
                 Console.Write(i + " ");
             }
             
+            int[] index = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
+            int[] temp = Shuffle(index,6);
+            foreach (int i in index)
+            {
+                Console.Write(i + "\t");
+            }
+            Console.WriteLine();
+            */
+
         }
+
+        
 
         //晚点信息设置界面加载
         private void 晚点信息设置ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -200,7 +212,14 @@ namespace 列车运行调整
         private void 调整后运行图ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             PlotTimeTable(PublicValue.startP, PublicValue.lineY, PublicValue.T_heuristic, new Pen(Color.Black, 2));
-            int[,] T = PublicValue.T_heuristic;
+
+            PrintTimeTable("普通：", PublicValue.T_heuristic);
+            PrintTimeTable("萤火虫：", PublicValue.T_FAA);
+        }
+
+        private void PrintTimeTable(string name, int[,] T)
+        {
+            Console.WriteLine(name);
             for (int i = 0; i < 14; i++)
             {
                 for (int j = 0; j < 10; j++)
@@ -407,6 +426,7 @@ namespace 列车运行调整
             //按站进行调整
             for (int i = 0; i < 6; i++)  //对6个车站进行遍历
             {
+                Console.WriteLine(i);
                 if (i == 0)   //始发站
                 {
                     for (int j = 0; j < 14; j++)
@@ -472,9 +492,44 @@ namespace 列车运行调整
                         }
 
                         //--------Part 2 发车时间计算 调用萤火虫算法得到最优发车次序-------------
+                        ii = i * 2 ; //记录要计算的列号 发车线
+
+                        int firstDelayTrain = 0;  //记录首个晚点车辆序号   因为前面车辆顺序不需要重新排
+                        for (int j = 0; j < 14; j++)
+                        {
+                            if (T_final[j,ii-1] > T_plan[j,ii-1])
+                            {
+                                firstDelayTrain = j;
+                                break;
+                            }
+                        }
+
+                        if (firstDelayTrain != 0)
+                        {
+                            //调用萤火虫算法调整该站发车顺序并得到发车时间
+                            //Console.WriteLine(firstDelayTrain);
+                            int[,] temp = new int[2, 14];
+                            int[] arriveTime = new int[14];
+                            for (int j = 0; j < 14; j++)
+			                {
+                                arriveTime[j] = T_final[j,ii-1];
+			                }
+                            temp = GetIndexFAA(i, arriveTime, firstDelayTrain);
+                        }
+                        else
+                        {
+                            //恢复计划运行
+                            for (int j = 0; j < 14; j++)
+			                {
+                                T_final[j,ii] = T_plan[j,ii];
+                                Index[i,j] = j;
+		                	}
+                        }
                     }
                 }
             }
+
+            PublicValue.T_FAA = T_final;
         }
 
         private void 萤火虫算法ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -507,6 +562,79 @@ namespace 列车运行调整
                 }
             }
             return temp;
+        }
+
+        //根据调整站序号、本站到达时间、首次晚点车辆  利用萤火虫算法求最佳发车次序
+        //输出调整后发车时间和最佳发车次序
+        private int[,] GetIndexFAA(int stationNum, int[] arriveTime, int firstDelayTrainNum)
+        {
+            int[,] resultData = new int[2, 14]; //用于返回得到的发车时间和发车次序
+            int[] departTime = new int[14];
+            int[] indexBest = new int[14];
+            int[,] tempX = new int[PublicValue.fireflyNum, 15];  //存放所有萤火虫排序结果
+
+            //初始化萤火虫
+            tempX = FFAInit(PublicValue.fireflyNum, firstDelayTrainNum);
+
+            //按照列车等级进行重新排序
+            for (int i = 0; i < PublicValue.fireflyNum; i++)
+            {
+
+            }
+
+
+            return resultData;
+        }
+
+        //按照列车等级重新排序
+        private int[] faaResort(int[] temp)
+        {
+            for (int i = 0; i < 4; i++)   //按照等级遍历
+            {
+
+            }
+            return temp;
+        }
+
+        //初始化萤火虫
+        private int[,] FFAInit(int ffaNum, int firstDelayTrainNum)
+        {
+            int[,] result = new int[ffaNum, 15];
+            int[] temp = new int[14];
+
+            for (int i = 0; i < ffaNum; i++)
+            {
+                for (int j = 0; j < 14; j++)
+                {
+                    temp[j] = j;
+                }
+                temp = Shuffle(temp, firstDelayTrainNum);
+                for (int j = 0; j < 14; j++)
+                {
+                    result[i, j] = temp[j];
+                }
+                result[i, 14] = 0;
+            }
+
+            return result;
+        }
+
+        //随机洗牌函数  需要指定起始点
+        private int[] Shuffle(int[] array, int startPoint)
+        {
+            int len = array.Length;
+            Random random = new Random(Guid.NewGuid().GetHashCode());
+            for (int i = startPoint; i < len; i++)
+            {
+                int idx = random.Next(i, len);
+
+                //swap elements
+                int tmp = array[i];
+                array[i] = array[idx];
+                array[idx] = tmp;
+            }
+
+            return array;
         }
     }
 }

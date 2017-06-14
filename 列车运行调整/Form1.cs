@@ -576,25 +576,43 @@ namespace 列车运行调整
             //初始化萤火虫
             tempX = FFAInit(PublicValue.fireflyNum, firstDelayTrainNum);
 
-            //按照列车等级进行重新排序
+            //按照列车等级进行重新排序--------------------后面还会用到----------------------
+            int temp = 0;
             for (int i = 0; i < PublicValue.fireflyNum; i++)
             {
-
+                for (int j = 0; j < 14 - 1; j++)  //冒泡排序
+                {
+                    for (int k = 0; k < 14 - 1 - j; k++)
+                    {
+                        if (PublicValue.level[k] == PublicValue.level[k+1] && tempX[i,k] > tempX[i,k+1])   //如果等级相同但是发车顺序有误 交换
+                        {
+                            temp = tempX[i, k];
+                            tempX[i, k] = tempX[i, k + 1];
+                            tempX[i, k + 1] = temp;
+                        }
+                    }
+                }
             }
 
+            Console.WriteLine("排序后：");
+            PrintArray2(tempX);
 
             return resultData;
         }
 
-        //按照列车等级重新排序
-        private int[] faaResort(int[] temp)
+        //显示二维数组
+        private void PrintArray2(int[,] arr)
         {
-            for (int i = 0; i < 4; i++)   //按照等级遍历
+            for (int i = 0; i < arr.GetLength(0); i++)
             {
-
+                for (int j = 0; j < arr.GetLength(1); j++)
+                {
+                    Console.Write(arr[i, j] + "\t");
+                }
+                Console.WriteLine();
             }
-            return temp;
         }
+
 
         //初始化萤火虫
         private int[,] FFAInit(int ffaNum, int firstDelayTrainNum)

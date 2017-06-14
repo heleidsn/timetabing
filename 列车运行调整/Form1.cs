@@ -57,6 +57,8 @@ namespace 列车运行调整
             public static int maxGeneration = 20; //最大迭代次数
             public static int neighborNum1 = 2;   //第一种邻域计算次数   
             public static int neighborNum2 = 2;   //第二种领域计算次数
+
+            public static int[] departTimeTemp = new int[14]; //用于参数传递 GetNextStationDelayTime()  
         }
 
         //计算标准运行图到发时刻 T_plan
@@ -188,7 +190,20 @@ namespace 列车运行调整
                 Console.Write(i + "\t");
             }
             Console.WriteLine();
-            */
+            
+            for (int i = 0; i < 10; i++)
+            {
+                Random rd = new Random(Guid.NewGuid().GetHashCode());
+                double dResult;
+                dResult = rd.NextDouble();
+                Console.WriteLine(dResult);
+            }
+             * */
+
+            int[] index = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 };
+            //Console.WriteLine(Array.IndexOf(index, 15));
+            index = faaInsert(index, 6);
+            
 
         }
 
@@ -437,7 +452,22 @@ namespace 列车运行调整
                 }
                 else if (i == 5)   //终点站
                 {
+                    int ii = i * 2 - 1;
                     //只需要计算最后的到达时刻
+                    int[] temp = new int[14];
+                    int[] departTimeTemp = new int[14];
+                    int[] indexTemp = new int[14];
+                    for (int j = 0; j < 14; j++)
+                    {
+                        departTimeTemp[j] = T_final[j, ii - 1];
+                        indexTemp[j] = Index[i - 1, j];
+                    }
+                    temp = GetArriveTime(indexTemp, departTimeTemp, i);
+                    for (int j = 0; j < 14; j++)
+                    {
+                        T_final[j, ii] = temp[j];
+                    }
+                    
                 }
                 else  //中间站点  需要计算到达和发车时间
                 {
@@ -489,6 +519,10 @@ namespace 列车运行调整
                                 indexTemp[j] = Index[i-1,j];
 			                }
                             temp = GetArriveTime(indexTemp, departTimeTemp, i);
+                            for (int j = 0; j < 14; j++)
+                            {
+                                T_final[j, ii] = temp[j];
+                            }
                         }
 
                         //--------Part 2 发车时间计算 调用萤火虫算法得到最优发车次序-------------
@@ -515,6 +549,11 @@ namespace 列车运行调整
                                 arriveTime[j] = T_final[j,ii-1];
 			                }
                             temp = GetIndexFAA(i, arriveTime, firstDelayTrain);
+                            for (int j = 0; j < 14; j++)
+                            {
+                                T_final[j, ii] = temp[0, j];
+                                Index[i, j] = temp[1, j];
+                            }
                         }
                         else
                         {
@@ -527,9 +566,12 @@ namespace 列车运行调整
                         }
                     }
                 }
+                PrintArray2(T_final);
+                PrintArray2(Index);
             }
 
             PublicValue.T_FAA = T_final;
+            Console.WriteLine(GetDelayTime(PublicValue.T_FAA));
         }
 
         private void 萤火虫算法ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -551,7 +593,7 @@ namespace 列车运行调整
        
             for (int i = 0; i < 14; i++)
             {
-                temp[indexTmp[i]] = departTime[indexTmp[i]] + PublicValue.Tm[stationNo - 1, PublicValue.level[i] - 1];
+                temp[indexTmp[i]] = departTime[indexTmp[i]] + PublicValue.Tm[stationNo - 1, PublicValue.level[indexTmp[i]] - 1];
                 if (temp[indexTmp[i]] < PublicValue.T_plan[indexTmp[i],stationNo*2-1])
                 {
                     temp[indexTmp[i]] = PublicValue.T_plan[indexTmp[i], stationNo * 2 - 1];
@@ -571,13 +613,18 @@ namespace 列车运行调整
             int[,] resultData = new int[2, 14]; //用于返回得到的发车时间和发车次序
             int[] departTime = new int[14];
             int[] indexBest = new int[14];
-            int[,] tempX = new int[PublicValue.fireflyNum, 15];  //存放所有萤火虫排序结果
+
+            int[] indexTemp = new int[14];  //存放临时发车顺序
+            int[,] departTimeTempTable = new int[PublicValue.fireflyNum, 14];  //所有萤火虫对应发车时间
+
+            int[,] tempX = new int[PublicValue.fireflyNum, 14];      //所有萤火虫排序结果
+            double[] delayTime = new double[PublicValue.fireflyNum]; //所有萤火虫下站晚点时刻
 
             //初始化萤火虫
             tempX = FFAInit(PublicValue.fireflyNum, firstDelayTrainNum);
 
             //按照列车等级进行重新排序--------------------后面还会用到----------------------
-            int temp = 0;
+            int temp = 0;  //数据交换
             for (int i = 0; i < PublicValue.fireflyNum; i++)
             {
                 for (int j = 0; j < 14 - 1; j++)  //冒泡排序
@@ -594,10 +641,324 @@ namespace 列车运行调整
                 }
             }
 
-            Console.WriteLine("排序后：");
-            PrintArray2(tempX);
+            //Console.WriteLine("排序后：");
+            //PrintArray2(tempX);
 
+            //迭代计算
+            for (int i = 0; i < PublicValue.maxGeneration; i++)
+            {
+                //1、计算绝对亮度
+                double[] I = new double[PublicValue.fireflyNum]; //绝对亮度
+                for (int k = 0; k < PublicValue.fireflyNum; k++)
+                {
+                    for (int j = 0; j < 14; j++)
+		         	{
+                        indexTemp[j] = tempX[k,j];
+			        }
+                    delayTime[k] = GetNextStationDelayTime(stationNum, arriveTime, indexTemp);
+                    I[k] = 1 / delayTime[k];
+                    for (int j = 0; j < 14; j++)
+                    {
+                        departTimeTempTable[k, j] = PublicValue.departTimeTemp[j];
+                    }
+                }
+
+                //2、按照绝对亮度进行排序
+                int[] indexTemp1 = new int[PublicValue.fireflyNum];
+                double[] Lightn = new double[PublicValue.fireflyNum];
+                I.CopyTo(Lightn, 0); //复制数组
+                for (int j = 0; j < PublicValue.fireflyNum; j++)
+                {
+                    indexTemp1[j] = j;
+                }
+                Array.Sort(Lightn, indexTemp1);
+                Console.WriteLine(1 / Lightn[PublicValue.fireflyNum - 1]);
+
+                //3、记录排序后的亮度和对应序号
+                for (int j = 0; j < 14; j++)
+                {
+                    indexBest[j] = tempX[indexTemp1[PublicValue.fireflyNum - 1], j];
+                    departTime[j] = departTimeTempTable[indexTemp1[PublicValue.fireflyNum - 1], j];
+                }
+
+                
+                //4、萤火虫进行移动
+                //生成xn和xo
+                int[,] xn = new int[PublicValue.fireflyNum, 14];
+                int[,] xo = new int[PublicValue.fireflyNum, 14];
+                //按照排序对xn进行赋值
+                for (int j = 0; j < PublicValue.fireflyNum; j++)
+                {
+                    for (int k = 0; k < 14; k++)
+                    {
+                        xn[j, k] = tempX[indexTemp1[j], k];
+                    }
+                }
+                xo = (int[,])xn.Clone();
+                //xn.CopyTo(xo, 0);
+                double[] Lighto = new double[PublicValue.fireflyNum];
+                Lightn.CopyTo(Lighto, 0);
+                //移动
+                tempX = faaMove(xn, Lightn, xo, Lighto, stationNum, arriveTime);
+            }
+
+            for (int i = 0; i < 14; i++)
+            {
+                resultData[0, i] = departTime[i];
+                resultData[1, i] = indexBest[i];
+            }
             return resultData;
+        }
+
+        //萤火虫移动
+        private int[,] faaMove(int[,] xn, double[] Lightn, int[,] xo, double[] Lighto, int stationNum, int[] arriveTime)
+        {
+            int[,] result = new int[PublicValue.fireflyNum, 14];
+
+            for (int i = 0; i < PublicValue.fireflyNum; i++)
+            {
+                for (int j = 0; j < PublicValue.fireflyNum; j++)
+                {
+                    //计算距离
+                    int r = 0;
+                    for (int k = 0; k < 14; k++)
+                    {
+                        if (xn[i,k] != xn[j,k])
+                        {
+                            r += 1;
+                        }
+                    }
+                    //向亮度更高的萤火虫移动
+                    if (Lightn[i] < Lighto[j])
+                    {
+                        double beta0 = 1;
+                        double gamma = 1;
+                        double beta = 0;
+                        beta = beta0 * Math.Exp(-gamma * r * r);
+
+                        //萤火虫移动
+                        int[] Xi = new int[14];
+                        int[] Xj = new int[14];
+                        int[] temp = new int[14];
+                        for (int kk = 0; kk < 14; kk++)
+			            {
+                            Xi[kk] = xn[i,kk];
+                            Xj[kk] = xo[j,kk];
+			            }
+                        temp = faaExchange(Xi, Xj, beta, stationNum, arriveTime);
+                        for (int kk = 0; kk < 14; kk++)
+                        {
+                            xn[i, kk] = temp[kk];
+                        }
+                    }
+                    
+                }
+            }
+
+            result = xn;
+            return result;
+        }
+
+        //萤火虫移动+变异
+        private int[] faaExchange(int[] Xi, int[] Xj, double beta, int stationNum, int[] arriveTime)
+        {
+            int[] X = new int[14];
+            for (int i = 0; i < 14; i++)
+            {
+                X[i] = -1;
+            }
+            int[] useFlag = new int[14];
+            for (int i = 0; i < PublicValue.delayTrainNo - 1; i++)
+            {
+                X[i] = Xi[i];
+                useFlag[X[i]] = 1;
+            }
+
+            //二者择- -!
+            for (int i = PublicValue.delayTrainNo -1; i < 14; i++)
+            {
+                Random rd = new Random(Guid.NewGuid().GetHashCode());
+                double dResult;
+                dResult = rd.NextDouble();
+                if (dResult < beta && Array.IndexOf(X, Xi[i]) == -1)
+                {
+                    X[i] = Xi[i];
+                    useFlag[X[i]] = 1;
+                }
+                else if (Array.IndexOf(X, Xi[i]) == -1)
+                {
+                    X[i] = Xj[i];
+                    useFlag[X[i]] = 1;
+                }
+            }
+
+            //查缺补漏- -！
+            for (int i = 0; i < 14; i++)
+            {
+                if (X[i] == -1)
+                {
+                    for (int j = 0; j < 14; j++)
+                    {
+                        if (useFlag[j] != 1)
+                        {
+                            X[i] = j;
+                            useFlag[j] = 1;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            //变异部分-------TODO
+            //定义两种邻域个数
+            int neighbor1 = 2;
+            int neighbor2 = 2;
+            int[,] temp = new int[neighbor1 + neighbor2, 14]; //所有变异得到的发车顺序
+            double[] delayTemp = new double[neighbor1 + neighbor2]; //所有变异得到的晚点时间
+            int[] temp1 = new int[14]; //接收变异得到的顺序
+            for (int i = 0; i < neighbor1 + neighbor1; i++)
+            {
+                if (i < neighbor1)
+                {
+                    temp1 = faaInsert(X, PublicValue.delayTrainNo);
+                    for (int j = 0; j < 14 - 1; j++)  //冒泡排序
+                    {
+                        for (int k = 0; k < 14 - 1 - j; k++)
+                        {
+                            if (PublicValue.level[k] == PublicValue.level[k + 1] && X[k] > X[k + 1])   //如果等级相同但是发车顺序有误 交换
+                            {
+                                int temp2 = X[k];
+                                X[k] = X[k + 1];
+                                X[k + 1] = temp2;
+                            }
+                        }
+                    }
+                    for (int j = 0; j < 14; j++)
+                    {
+                        temp[i, j] = X[j];
+                    }
+                    delayTemp[i] = GetNextStationDelayTime(stationNum, arriveTime, X);
+                }
+                else
+                {
+                    temp1 = faaSwap(X, PublicValue.delayTrainNo);
+                    for (int j = 0; j < 14 - 1; j++)  //冒泡排序
+                    {
+                        for (int k = 0; k < 14 - 1 - j; k++)
+                        {
+                            if (PublicValue.level[k] == PublicValue.level[k + 1] && X[k] > X[k + 1])   //如果等级相同但是发车顺序有误 交换
+                            {
+                                int temp2 = X[k];
+                                X[k] = X[k + 1];
+                                X[k + 1] = temp2;
+                            }
+                        }
+                    }
+                    for (int j = 0; j < 14; j++)
+                    {
+                        temp[i, j] = X[j];
+                    }
+                    delayTemp[i] = GetNextStationDelayTime(stationNum, arriveTime, X);
+                }
+            }
+
+            int[] indexTemp1 = new int[neighbor1 + neighbor2];
+            for (int i = 0; i < neighbor1 + neighbor2; i++)
+            {
+                indexTemp1[i] = i;
+            }
+            Array.Sort(delayTemp, indexTemp1);
+
+            for (int i = 0; i < 14; i++)
+            {
+                X[i] = temp[indexTemp1[0], i];
+            }
+
+            return X;
+        }
+
+        private int[] faaInsert(int[] data, int startPoint)
+        {
+            Random random = new Random(Guid.NewGuid().GetHashCode());
+            int[] ra = new int[2];
+            while (ra[0] == ra[1])
+            {
+                ra[0] = random.Next(startPoint-1, data.Length);
+                ra[1] = random.Next(startPoint-1, data.Length);
+            }
+            Array.Sort(ra);
+            int temp = data[ra[0]];
+            for (int i = ra[0]; i < ra[1]; i++)
+            {
+                data[i] = data[i + 1];
+            }
+            data[ra[1]] = temp;
+            //Console.WriteLine(ra[0] + " " + ra[1]);
+            return data;
+        }
+
+        private int[] faaSwap(int[] data, int startPoint)
+        {
+            Random random = new Random(Guid.NewGuid().GetHashCode());
+            int[] ra = new int[2];
+            while (ra[0] == ra[1])
+            {
+                ra[0] = random.Next(startPoint - 1, data.Length);
+                ra[1] = random.Next(startPoint - 1, data.Length);
+            }
+            int temp = data[ra[0]];
+            data[ra[0]] = data[ra[1]];
+            data[ra[1]] = temp;
+            return data;
+        }
+
+        private double GetNextStationDelayTime(int stationNum,int[] arriveTime, int[] index)
+        {
+            int[] departTime = new int[14];  //用于存放发车时间
+
+            int[] indexCopy = index;
+            int[] indexTemp = new int[14];
+            //确定最小发车时间
+            for (int i = 0; i < 14; i++)
+            {
+                departTime[i] = arriveTime[i] + PublicValue.Tz[stationNum, PublicValue.level[i]-1];
+                indexTemp[i] = i; //下标矩阵初始化
+            }
+
+            //对发车顺序进行排序  并按照最小发车间隔重新计算发车时间和到达时间
+            Array.Sort(indexCopy, indexTemp);
+            for (int i = 1; i < 14; i++)
+            {
+                if (departTime[indexTemp[i]] < departTime[indexTemp[i-1]] + PublicValue.minDepartTime)
+                {
+                    departTime[indexTemp[i]] = departTime[indexTemp[i - 1]] + PublicValue.minDepartTime;
+                }
+            }
+
+            //按照发车顺序计算下站到达时间
+            int[] arriveTimeNext = new int[14];
+            for (int i = 0; i < 14; i++)
+            {
+                arriveTimeNext[indexTemp[i]] = departTime[indexTemp[i]] + PublicValue.Tm[stationNum, PublicValue.level[indexTemp[i]] - 1];
+                if (arriveTimeNext[indexTemp[i]] < PublicValue.T_plan[indexTemp[i], stationNum * 2 + 1])
+                {
+                    arriveTimeNext[indexTemp[i]] = PublicValue.T_plan[indexTemp[i], stationNum * 2 + 1];
+                }
+                if (i !=0 && arriveTimeNext[indexTemp[i]] - arriveTimeNext[indexTemp[i-1]] < PublicValue.minArriveTime)
+                {
+                    arriveTimeNext[indexTemp[i]] = arriveTimeNext[indexTemp[i - 1]] + PublicValue.minArriveTime;
+                }
+            }
+
+            //计算加权晚点时刻
+            double delayTime = 0;
+            for (int i = 0; i < 14; i++)
+            {
+                delayTime += (arriveTimeNext[i] - PublicValue.T_plan[i, stationNum * 2 + 1]) * PublicValue.weight[i] * 0.1;
+            }
+            //参数回传  直接传递晚点时刻  简介传递发车时间
+            PublicValue.departTimeTemp = departTime;
+            return delayTime;
         }
 
         //显示二维数组
@@ -617,7 +978,7 @@ namespace 列车运行调整
         //初始化萤火虫
         private int[,] FFAInit(int ffaNum, int firstDelayTrainNum)
         {
-            int[,] result = new int[ffaNum, 15];
+            int[,] result = new int[ffaNum, 14];
             int[] temp = new int[14];
 
             for (int i = 0; i < ffaNum; i++)
@@ -631,7 +992,7 @@ namespace 列车运行调整
                 {
                     result[i, j] = temp[j];
                 }
-                result[i, 14] = 0;
+                
             }
 
             return result;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,11 +16,14 @@ namespace 列车运行调整
         public Form2()
         {
             InitializeComponent();
+            plot_Frame();
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            plot_Frame();
+            int[,] p = read_Data("data.txt");
+            Console.WriteLine(p[1, 2]);
+            plot_Timetable(p);
         }
 
         //绘制框架
@@ -36,7 +40,7 @@ namespace 列车运行调整
             
 
             //创建位图并在其上作画
-            Bitmap bm = new Bitmap(startP.X + totalHours * points_Per_Hour * scale_X + 100, startP.Y + stationNum * scale_Y + 50);
+            Bitmap bm = new Bitmap(startP.X + totalHours * points_Per_Hour * scale_X + 100, startP.Y + stationNum * scale_Y + 20);
             Graphics gr = Graphics.FromImage(bm);
 
             gr.Clear(Color.White);
@@ -77,8 +81,59 @@ namespace 列车运行调整
                 {
                     gr.DrawLine(PenGreen1, startP.X + i * scale_X, startP.Y, startP.X + i * scale_X, startP.Y + (stationNum - 1) * scale_Y);
 	            }
-                //gr.DrawLine(PenGreen, startP.X+i*scale_X, startP.Y, startP.X+i*scale_X, 500);
             }
+         
+            gr.Save();
+            pictureBox1.Image = bm;
+        }
+
+        //读取计划运行图数据
+        private int[,] read_Data(string fileName)
+        {
+            StreamReader rd = File.OpenText(fileName);
+            string s = rd.ReadLine();
+            string[] ss = s.Split(',');
+
+            int row = int.Parse(ss[0]);
+            int col = int.Parse(ss[1]);
+
+            int[,] p1 = new int[row, col];
+
+            for (int i = 0; i < row; i++)
+            {
+                string line = rd.ReadLine();
+                string[] data = line.Split('\t');
+
+                for (int j = 0; j < col; j++)
+                {
+                    p1[i, j] = int.Parse(data[j]);
+                }
+            }
+
+            return p1;
+        }
+
+        //绘制运行图
+        private void plot_Timetable(int[,] TimeTable)
+        {
+            int row = TimeTable.GetLength(0);
+            int col = TimeTable.GetLength(1);
+
+            //从picturebox获得位图并进行编辑
+            Bitmap bm = (Bitmap)pictureBox1.Image;
+            Graphics gr = Graphics.FromImage(bm);
+
+            //起始点及缩放系数
+            Point startP = new Point(100, 50);
+            int scale_X = 10;
+            int scale_Y = 50;
+            int trainNum = 16;
+            int stationNum = 23;
+            int totalHours = 10;
+            int points_Per_Hour = 12;  //每格代表5min
+
+            Pen PenGreen2 = new Pen(Color.Green, 2);//绿 实线 粗
+            //gr.DrawLine(PenGreen2, 10,10,210,210);
 
             Pen PenRed1 = new Pen(Color.Magenta, 2);
             int scale_min = points_Per_Hour * scale_X / 60;
@@ -90,8 +145,29 @@ namespace 列车运行调整
             gr.DrawLine(PenRed1, startP.X + 232 * scale_min, startP.Y + scale_Y * 15, startP.X + 281 * scale_min, startP.Y + scale_Y * 18);
             gr.DrawLine(PenRed1, startP.X + 281 * scale_min, startP.Y + scale_Y * 18, startP.X + 283 * scale_min, startP.Y + scale_Y * 18);
             gr.DrawLine(PenRed1, startP.X + 283 * scale_min, startP.Y + scale_Y * 18, startP.X + 306 * scale_min, startP.Y + scale_Y * 22);
+
+            //绘制运行图
+            for (int i = 0; i < row; i++)
+            {
+                //每列车进行遍历
+                Point startPoint = new Point(0, 0);
+                Point endPoint = new Point(0, 0);
+                for (int j = 0; j < col; j++)
+                {
+                    //每个站进行遍历
+                    if (j == 0)
+                    {
+                        //确定起始点
+                        startPoint.X = startP.X;
+                        startPoint.Y = startP.Y + TimeTable[i, 0] * scale_min;
+                    }
+
+                }
+            }
+
             gr.Save();
             pictureBox1.Image = bm;
+
         }
     }
 }

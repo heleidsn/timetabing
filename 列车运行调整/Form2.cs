@@ -34,23 +34,39 @@ namespace 列车运行调整
             gr.Clear(Color.White);
 
             Point startP = new Point(100,100);
-            Pen PenGreen = new Pen(Color.Green, 1);
+            Pen PenGreen = new Pen(Color.Green, 1);//绿 虚线 细
+            PenGreen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;//选择线段样式
+            Pen PenGreen1 = new Pen(Color.Green, 1);//绿 实线 细
+            Pen PenGreen2 = new Pen(Color.Green, 2);//绿 实线 粗
 
             int scale_X = 10;
             int scale_Y = 30;
             int trainNum = 16;
             int stationNum = 23;
+            int totalHours = 10;
+            int points_Per_Hour = 12;
 
+            //画横线
             for (int i = 0; i < stationNum; i++)
             {
-                gr.DrawLine(PenGreen, startP.X, startP.Y + i * scale_Y, 1000, startP.Y + i * scale_Y);
+                gr.DrawLine(PenGreen2, startP.X, startP.Y + i * scale_Y, points_Per_Hour*totalHours*scale_X, startP.Y + i * scale_Y);
             }
-            for (int i = 0; i < 300; i++)
+            //画竖线
+            for (int i = 0; i < totalHours * points_Per_Hour; i++)
             {
-                gr.DrawLine(PenGreen, startP.X+i*scale_X, startP.Y, startP.X+i*scale_X, 500);
+                if (i % points_Per_Hour == 0)
+                {
+                    //每小时竖线
+                    gr.DrawLine(PenGreen2, startP.X+i*scale_X, startP.Y, startP.X+i*scale_X, 500);
+                }
+                else 	
+                {
+                    gr.DrawLine(PenGreen1, startP.X + i * scale_X, startP.Y, startP.X + i * scale_X, 500);
+	            }
+                //gr.DrawLine(PenGreen, startP.X+i*scale_X, startP.Y, startP.X+i*scale_X, 500);
             }
-            gr.DrawLine(PenGreen, startP.X, startP.Y, 1300, startP.Y);
-            gr.DrawLine(PenGreen, startP.X, startP.Y, startP.X, 1000);
+            //gr.DrawLine(PenGreen, startP.X, startP.Y, 1300, startP.Y);
+            //gr.DrawLine(PenGreen, startP.X, startP.Y, startP.X, 1000);
             gr.Save();
 
             pictureBox1.Image = bm;

@@ -52,6 +52,7 @@
             this.label4 = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.button3 = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -67,6 +68,7 @@
             this.panel1.Controls.Add(this.groupBox2);
             this.panel1.Controls.Add(this.comboBox3);
             this.panel1.Controls.Add(this.groupBox1);
+            this.panel1.Controls.Add(this.button3);
             this.panel1.Controls.Add(this.button2);
             this.panel1.Controls.Add(this.button1);
             this.panel1.Controls.Add(this.label4);
@@ -158,6 +160,7 @@
             // radioButton2
             // 
             this.radioButton2.AutoSize = true;
+            this.radioButton2.Checked = true;
             this.radioButton2.Location = new System.Drawing.Point(45, 53);
             this.radioButton2.Name = "radioButton2";
             this.radioButton2.Size = new System.Drawing.Size(83, 16);
@@ -209,25 +212,59 @@
             this.comboBox2.FormattingEnabled = true;
             this.comboBox2.Items.AddRange(new object[] {
             "北京南站",
+            "廊坊站",
+            "天津南站",
+            "沧州西站",
+            "德州东站",
+            "济南西站",
+            "泰安站",
+            "曲阜东站",
+            "滕州东站",
+            "枣庄站",
+            "徐州东站",
+            "宿州东站",
+            "蚌埠南站",
+            "定远站",
+            "滁州站",
             "南京南站",
+            "镇江南站",
+            "丹阳北站",
+            "常州北站",
+            "无锡东站",
+            "苏州北站",
+            "昆山南站",
             "上海虹桥站"});
             this.comboBox2.Location = new System.Drawing.Point(87, 58);
             this.comboBox2.Name = "comboBox2";
             this.comboBox2.Size = new System.Drawing.Size(100, 20);
             this.comboBox2.TabIndex = 1;
-            this.comboBox2.Text = "南京南站";
+            this.comboBox2.Text = "天津南站";
             // 
             // comboBox1
             // 
             this.comboBox1.FormattingEnabled = true;
             this.comboBox1.Items.AddRange(new object[] {
+            "G11",
+            "G107",
+            "G111",
+            "G113",
+            "G41",
+            "G115",
+            "G117",
+            "G119",
             "G121",
-            "G131"});
+            "G15",
+            "G125",
+            "G411",
+            "G129",
+            "G131",
+            "G133",
+            "G135"});
             this.comboBox1.Location = new System.Drawing.Point(87, 27);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(100, 20);
             this.comboBox1.TabIndex = 1;
-            this.comboBox1.Text = "G131";
+            this.comboBox1.Text = "G111";
             // 
             // textBox1
             // 
@@ -269,9 +306,9 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(101, 518);
+            this.button2.Location = new System.Drawing.Point(15, 518);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(100, 29);
+            this.button2.Size = new System.Drawing.Size(91, 27);
             this.button2.TabIndex = 0;
             this.button2.Text = "调整";
             this.button2.UseVisualStyleBackColor = true;
@@ -315,6 +352,16 @@
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.pictureBox1.TabIndex = 0;
             this.pictureBox1.TabStop = false;
+            // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(120, 518);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(91, 27);
+            this.button3.TabIndex = 0;
+            this.button3.Text = "结果对比";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // Form2
             // 
@@ -369,6 +416,7 @@
         private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Button button3;
 
 
     }

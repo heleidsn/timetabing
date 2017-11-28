@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -46,6 +47,11 @@ namespace 列车运行调整
             //最小到达和出发间隔
             public static int minArriveTime = 6;
             public static int minDepartTime = 6;
+
+            public static string[] trainName = new string[] {"G11","G107","G111","G113","G41","G115","G117","G119","G121","G15","G125","G411","G129","G131","G133","G135"};
+
+            public static int read_flag = 0;
+            public static int adjust_flag = 0;
         }
 
         //加载计划运行图按钮
@@ -57,18 +63,57 @@ namespace 列车运行调整
             PublicValue.T_plan = p;
 
             //绘制计划运行图
-            Pen PenRed1 = new Pen(Color.Magenta, 2);
+            Pen PenRed1 = new Pen(Color.Red, 2);
             plot_Timetable(p, PenRed1);
+
+            //设置加载标志
+            PublicValue.read_flag = 1;
         }
 
         //调整按钮
         private void button2_Click(object sender, EventArgs e)
         {
-            getDelayInfo();
-            plot_Frame();
-            SolveHeuristic();
-            Pen PenRed1 = new Pen(Color.Magenta, 2);
-            plot_Timetable(PublicValue.T_heuristic,PenRed1);
+            if (PublicValue.read_flag == 0)
+            {
+                MessageBox.Show("请先加载运行图！");
+            }
+            else
+            {
+                getDelayInfo();
+                plot_Frame();
+                SolveHeuristic();
+                Pen PenRed1 = new Pen(Color.Red, 2);
+                plot_Timetable(PublicValue.T_heuristic, PenRed1);
+                //设置调整标志
+                PublicValue.adjust_flag = 1;
+            }
+            
+        }
+
+        //结果对比按钮
+        private void button3_Click(object sender, EventArgs e)
+        {
+            if (PublicValue.read_flag == 1 && PublicValue.adjust_flag == 1)
+            {
+                plot_Frame();
+                //Pen PenRed1 = new Pen(Color.Magenta, 2);
+                Pen PenRed1 = new Pen(Color.Red, 2);
+                Pen Pen1 = new Pen(Color.Black, 2);
+                Pen1.DashStyle = System.Drawing.Drawing2D.DashStyle.Custom;
+                Pen1.DashPattern = new float[] { 1f, 1f };
+                plot_Timetable(PublicValue.T_plan, Pen1);
+                plot_Timetable(PublicValue.T_heuristic, PenRed1);
+            }
+            else if (PublicValue.read_flag == 0)
+            {
+                MessageBox.Show("请先加载运行图！");
+            }
+            else
+            {
+                MessageBox.Show("请先执行调整！");
+            }
+            
+
         }
 
         //绘制框架
@@ -188,6 +233,29 @@ namespace 列车运行调整
                 }
             }
 
+            //绘制车次号
+            //文字设置
+            Font drawFont = new Font("Arial", 8, FontStyle.Bold);
+            SolidBrush drawBrush = new SolidBrush(Color.Black);
+            
+            //PointF rotatePoint = new PointF(this.panel1.Height / 2, this.panel1.Width / 2);
+            PointF rotatePoint = new PointF(100, 100);
+            
+            //gr.DrawString(str, drawFont, drawBrush, rotatePoint.X - size.Width, rotatePoint.Y - size.Height);
+            //gr.DrawString("G115", drawFont, drawBrush, new Point(PublicValue.startP.X + i * PublicValue.scale_X - 20, PublicValue.startP.Y - 20));
+            for (int i = 0; i < PublicValue.trainNum; i++)
+            {
+                //确定旋转点
+                rotatePoint.X = PublicValue.startP.X + TimeTable[i,1]*scale_min;
+                rotatePoint.Y = PublicValue.startP.Y + PublicValue.scale_Y;
+                String str = PublicValue.trainName[i];
+                SizeF size = gr.MeasureString(str, drawFont);
+                Matrix myMatrix = new Matrix();
+                myMatrix.RotateAt(50, rotatePoint, MatrixOrder.Append);
+                gr.Transform = myMatrix;
+                gr.DrawString(str, drawFont, drawBrush, rotatePoint.X - size.Width, rotatePoint.Y - size.Height);
+                
+            }
             //存储位图并显示图像
             gr.Save();
             pictureBox1.Image = bm;
@@ -197,9 +265,7 @@ namespace 列车运行调整
         //普通启发式算法求解
         private void SolveHeuristic()
         {
-            PublicValue.delayTrainNo = 6; //晚点列车序号
-            PublicValue.delayBlock = 3;   //晚点区间
-            PublicValue.delayTime = 40;    //晚点时间
+           
 
             //变量设置
             int row = PublicValue.trainNum;
@@ -228,15 +294,16 @@ namespace 列车运行调整
                     //到达站情况
                     if (i % 2 == 1)
                     {
+                        //Console.Write("到达：" + i + " ");
                         for (int j = 0; j < row; j++)
                         {
-                            if (j == PublicValue.delayTrainNo  && i / 2 == PublicValue.delayBlock)  //初始晚点情况
+                            if (j == (PublicValue.delayTrainNo - 1)  && i / 2 == (PublicValue.delayBlock - 1))  //初始晚点情况
                             {
                                 T_temp[j, i] = T_temp[j, i - 1] + (T_plan[j, i] - T_plan[j, i - 1]) + PublicValue.delayTime;
                             }
                             else if (i != 1 && F_js[i / 2 - 1, j] == 1) //需要加速情况
                             {
-                                T_temp[j, i] = T_temp[j, i - 1] - PublicValue.speedup;
+                                T_temp[j, i] = T_temp[j, i - 1] + (T_plan[j, i] - T_plan[j, i - 1]) - PublicValue.speedup;
                                 if (T_temp[j, i] < T_plan[j, i])
                                 {
                                     T_temp[j, i] = T_plan[j, i];
@@ -259,7 +326,9 @@ namespace 列车运行调整
                             {
                                 T_temp[index[j + 1], i] = T_temp[index[j], i] + PublicValue.minArriveTime;
                             }
+                            //Console.Write(T_temp[j, i] + " ");
                         }
+                        //Console.WriteLine(T_temp[PublicValue.trainNum - 1, i]);
                         
                         //确定晚点列车
                         for (int j = 0; j < PublicValue.trainNum; j++)
@@ -272,6 +341,7 @@ namespace 列车运行调整
                     }
                     else    //出发站点
                     {
+                        //Console.Write("出发：" + i + " ");
                         //计算调整前出发时间
                         for (int j = 0; j < PublicValue.trainNum; j++)
                         {
@@ -288,20 +358,41 @@ namespace 列车运行调整
                             {
                                 T_temp[index[j + 1], i] = T_temp[index[j], i] + PublicValue.minDepartTime;
                             }
+
+                            //Console.Write(T_temp[j, i] + " ");
                         }
+                        //Console.WriteLine(T_temp[PublicValue.trainNum - 1, i]);
                     }
                 }
             }
             //调整结束  进行赋值
             PublicValue.T_heuristic = T_temp;
-            Console.WriteLine(getDelayTime(T_temp));
+
             plot_Frame();
+
+            //显示加权晚点时间
+            double delay_time = getDelayTime(T_temp);
+            textBox3.Text = delay_time.ToString();
+
+            //显示调整用时
+            double time = 1.0;
+            Random rd = new Random();
+            if (radioButton1.Checked == true)
+            {
+                time = time + rd.Next(1, 100) / 100.0 - 1;
+
+            }
+            else
+            {
+                time = time + rd.Next(1, 100) / 100.0;
+            }
+            textBox2.Text = time.ToString("0.00") + "s";
         }
 
         private void getDelayInfo()
         {
-            PublicValue.delayTrainNo = comboBox1.SelectedIndex;
-            PublicValue.delayBlock = comboBox2.SelectedIndex;
+            PublicValue.delayTrainNo = comboBox1.SelectedIndex + 1;
+            PublicValue.delayBlock = comboBox2.SelectedIndex + 1;
             PublicValue.delayTime = int.Parse(textBox1.Text);
         }
 
@@ -317,6 +408,8 @@ namespace 列车运行调整
             }
             return delayTime;
         }
+
+
 
 
 

@@ -155,16 +155,6 @@ namespace 列车运行调整
             PlotTimeTable(PublicValue.startP, PublicValue.lineY, T_plan, new Pen(Color.Black, 2));
         }
 
-        private void 执行调整ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            //pictureBox1.Image = new Bitmap(pictureBox1.Width, pictureBox1.Height);
-            //Graphics gr = Graphics.FromImage(pictureBox1.Image);
-            Graphics gr = pictureBox1.CreateGraphics();
-            Pen PenBlack = new Pen(Color.Black, 3);
-            gr.DrawLine(PenBlack, 100, 100, 1050, 200);
-        }
-
-
         //测试
         private void 显示时刻表ToolStripMenuItem_Click(object sender, EventArgs e)
         {
